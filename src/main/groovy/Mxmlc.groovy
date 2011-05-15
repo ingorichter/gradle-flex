@@ -23,6 +23,30 @@ class Mxmlc extends DefaultTask {
 
 	@TaskAction
 	def compileFlex() {
+		if(project.serviceFile == null || project.contextRoot == null ) {
+			mxmlcWithoutServices {
+				mxmlcBody
+			}
+		}
+		else {
+			mxmlcWithServices {
+				mxmlcBody
+			}
+		}
+	}
+
+	def mxmlcWithoutServices(closure) {
+		ant.mxmlc(output: project.output, 
+                  file:   project.target, 
+                  fork:   'true', 
+                  'keep-all-type-selectors': project.keepAllTypeSelectors,
+                  'verify-digests': 'false',
+                  debug: 'true') {
+			closure()
+		}
+	}
+	
+	def mxmlcWithServices(closure) {
 		ant.mxmlc(output: project.output, 
                   file:   project.target, 
                   fork:   'true', 
@@ -31,62 +55,64 @@ class Mxmlc extends DefaultTask {
                   'keep-all-type-selectors': project.keepAllTypeSelectors,
                   'verify-digests': 'false',
                   debug: 'true') {
-
-			// source paths (relative to project directory)
-				
-			project.srcDirs.each { dir ->
-                println "adding mxmlc source path: ${dir}"
-				'source-path'('path-element': dir)
-			}
-		
-			// platform dependencies
-							    
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/textLayout.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/tlf/1.1.0.604/textLayout_1.1.0.604.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/framework.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/framework_4.1.0.16076.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/osmf.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/osmf_flex.4.0.0.13495.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/rpc.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/rpc_4.1.0.16076.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/spark.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/spark_4.1.0.16076.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/sparkskins.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/sparkskins_4.1.0.16076.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-			
-			'runtime-shared-library-path'('path-element': '${FLEX_LIB}/datavisualization.swc') {
-				url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/datavisualization_4.1.0.16076.swz',
-                'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
-			}
-						
-			'library-path'(file: "${FLEX_LIB}/flash-integration.swc", append: 'true')
-			'library-path'(file: "${FLEX_LIB}/utilities.swc", append: 'true')
-			'library-path'(file: "${FLEX_HOME}/frameworks/locale/en_US", append: 'true')
-	
-			// project-specific dependencies
-					
-			addLibraries('external-library-path', project.files(project.configurations.external))
-			addLibraries('library-path', project.files(project.configurations.merge))
-			addRsls(project.files(project.configurations.rsl))
-			
+			closure()
 		}
+	}
+	
+	def mxmlcBody = { ->
+		// source paths (relative to project directory)
+			
+		project.srcDirs.each { dir ->
+			println "adding mxmlc source path: ${dir}"
+			'source-path'('path-element': dir)
+		}
+	
+		// platform dependencies
+							
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/textLayout.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/tlf/1.1.0.604/textLayout_1.1.0.604.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/framework.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/framework_4.1.0.16076.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/osmf.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/osmf_flex.4.0.0.13495.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/rpc.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/rpc_4.1.0.16076.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/spark.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/spark_4.1.0.16076.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/sparkskins.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/sparkskins_4.1.0.16076.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+		
+		'runtime-shared-library-path'('path-element': '${FLEX_LIB}/datavisualization.swc') {
+			url('rsl-url': 'http://fpdownload.adobe.com/pub/swz/flex/4.1.0.16076/datavisualization_4.1.0.16076.swz',
+			'policy-file-url': 'http://fpdownload.adobe.com/pub/swz/crossdomain.xml')
+		}
+					
+		'library-path'(file: "${FLEX_LIB}/flash-integration.swc", append: 'true')
+		'library-path'(file: "${FLEX_LIB}/utilities.swc", append: 'true')
+		'library-path'(file: "${FLEX_HOME}/frameworks/locale/en_US", append: 'true')
+
+		// project-specific dependencies
+				
+		addLibraries('external-library-path', project.files(project.configurations.external))
+		addLibraries('library-path', project.files(project.configurations.merge))
+		addRsls(project.files(project.configurations.rsl))
 	}
 	
 	def addLibraries(String libraryPath, FileCollection libraries) {

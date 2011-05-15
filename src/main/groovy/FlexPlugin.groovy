@@ -25,8 +25,6 @@ import org.gradle.api.tasks.Delete
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-enum FlexType { swf, swc }
-
 class FlexPlugin implements Plugin<Project> {
 
 	public static final String COMPILE_TASK_NAME = 'compileFlex'
@@ -86,37 +84,37 @@ class FlexPlugin implements Plugin<Project> {
 	}
 	
 	private void configureBuild(Project project) {
-		DefaultTask buildTask = project.tasks.add(BUILD_TASK_NAME, DefaultTask.class)
+		DefaultTask buildTask = project.tasks.add(BUILD_TASK_NAME, DefaultTask)
 		buildTask.setDescription("Assembles and tests this project.")
-        buildTask.dependsOn(PUBLISH_TASK_NAME)
+        buildTask.dependsOn(COMPILE_TASK_NAME)
 	}
 	
 	private void addCompile(Project project, FlexPluginConvention pluginConvention) {
 		Task compileFlex = null
 		if(project.type == FlexType.swc) {
 			log.info "Adding ${COMPILE_TASK_NAME} task using compc to project ${project.name}" 
-			compileFlex = project.tasks.add(COMPILE_TASK_NAME, Compc.class)
+			compileFlex = project.tasks.add(COMPILE_TASK_NAME, Compc)
 			compileFlex.description = 'Compiles Flex component (*.swc) using the compc compiler'
 			compileFlex.outputs.dir project.buildDir
 			pluginConvention.output = "${project.buildDir}/${project.name}.swc"
 		}
 		else if(project.type == FlexType.swf) {
 			log.info "Adding ${COMPILE_TASK_NAME} task using mxmlc to project ${project.name}" 
-			compileFlex = project.tasks.add(COMPILE_TASK_NAME, Mxmlc.class)
+			compileFlex = project.tasks.add(COMPILE_TASK_NAME, Mxmlc)
 			compileFlex.description = 'Compiles Flex application/module (*.swf) using the mxmlc compiler'
 			pluginConvention.output = "${project.buildDir}/${project.name}.swf"
 			project.target = "${project.projectDir}/src/${project.name}.mxml"
 		}
 		else {
 			log.warn "Adding ${COMPILE_TASK_NAME} task using default implementation"
-			compileFlex = project.tasks.add(COMPILE_TASK_NAME, DefaultTask.class)
+			compileFlex = project.tasks.add(COMPILE_TASK_NAME, DefaultTask)
 			compileFlex.description = "Oops - we couldn't figure out if ${project.name} is a Flex component or a Flex application/module project."
 		}
 		compileFlex.dependsOn(CLEAN_TASK_NAME)
 	}
 	
 	private void addClean(final Project project) {
-		Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete.class)
+		Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete)
 		clean.description = "Deletes the build directory."
 		clean.delete { project.buildDir }
 	}
@@ -126,7 +124,7 @@ class FlexPlugin implements Plugin<Project> {
 		project.tasks.compileFlex.dependsOn {
 			Set dependentTasks = new HashSet()
 			['external', 'merge', 'rsl'].each { configuration ->
-				Set deps = project.configurations."${configuration}".getDependencies(ProjectDependency.class)
+				Set deps = project.configurations."${configuration}".getDependencies(ProjectDependency)
 				println "deps are: ${deps}"
 		    	deps.each { projectDependency ->
 					//def projectDependency = (ProjectDependency) dependency
@@ -145,9 +143,8 @@ class FlexPlugin implements Plugin<Project> {
 	}
     
     private void addPublish(Project project) {
-        Task publishFlex = project.tasks.add(PUBLISH_TASK_NAME, PublishFlex.class)
+        Task publishFlex = project.tasks.add(PUBLISH_TASK_NAME, PublishFlex)
         publishFlex.setDescription("Publish build artifacts to specified directory.")
-        publishFlex.dependsOn(COMPILE_TASK_NAME)
     }
     
     private def getPlatformLibs(Project project) {
