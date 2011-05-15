@@ -58,7 +58,6 @@ class FlexPluginConvention {
 		addSourceDirectoriesIfTheyExist(project, ['src', 'skin', 'test', 'assets'])
         
         // default output directory for the build artifacts
-		project.buildDir = project.file('bin-gradle')
         
 		addConfigurations(project)
 	}
